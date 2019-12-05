@@ -6,3 +6,5 @@ App makes Api calls to <a href="https://dog.ceo/dog-api/" target="_blank">DogApi
 
 Api calls are made using the <a href=https://square.github.io/retrofit/>Retrofit</a> library and images are retrieved from the URLs and
 placed on the screen using the <a href=https://square.github.io/picasso/>Picasso</a> library.
+
+<a href="https://www.w3schools.com/" target="_blank">Visit W3Schools!</a>
