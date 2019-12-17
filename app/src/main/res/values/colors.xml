@@ -3,4 +3,10 @@
     <color name="colorPrimary">#008577</color>
     <color name="colorPrimaryDark">#00574B</color>
     <color name="colorAccent">#D81B60</color>
+
+    <!-- Main page background color -->
+    <color name="main_background">#3887E5</color>
+
+    <color name="white_background">#FCF3FF</color>
+
 </resources>

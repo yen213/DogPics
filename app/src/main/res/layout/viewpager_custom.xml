@@ -1,0 +1,45 @@
+<?xml version="1.0" encoding="utf-8"?>
+<RelativeLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:tools="http://schemas.android.com/tools"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent"
+    android:background="@drawable/image_screen_background"
+    android:padding="4dp">
+
+    <ImageView
+        android:id="@+id/image_screen_logo"
+        android:layout_width="300dp"
+        android:layout_height="76dp"
+        android:layout_centerHorizontal="true"
+        android:layout_marginTop="52dp"
+        android:background="@drawable/logo"
+        android:contentDescription="@string/app_title_image" />
+
+    <ImageView
+        android:id="@+id/vp_image"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_below="@id/image_screen_logo"
+        android:layout_centerHorizontal="true"
+        android:layout_marginTop="36dp"
+        android:contentDescription="@string/dog_image"
+        tools:background="@tools:sample/avatars" />
+
+    <TextView
+        android:id="@+id/vp_breed_tv"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:layout_below="@id/vp_image"
+        android:layout_centerInParent="true"
+        android:layout_marginStart="8dp"
+        android:layout_marginLeft="8dp"
+        android:layout_marginTop="44dp"
+        android:layout_marginEnd="8dp"
+        android:layout_marginRight="8dp"
+        android:fontFamily="@font/main_font"
+        android:gravity="center"
+        android:textColor="@android:color/black"
+        android:textSize="44sp"
+        tools:text="@string/breed_hint" />
+
+</RelativeLayout>

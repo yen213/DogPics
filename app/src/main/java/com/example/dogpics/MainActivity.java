@@ -4,7 +4,12 @@ import androidx.annotation.NonNull;
 import androidx.appcompat.app.AppCompatActivity;
 import androidx.lifecycle.ViewModelProviders;
 
+import android.content.BroadcastReceiver;
+import android.content.Context;
 import android.content.Intent;
+import android.content.IntentFilter;
+import android.net.ConnectivityManager;
+import android.net.NetworkInfo;
 import android.os.Bundle;
 
 import android.util.Log;
@@ -13,6 +18,7 @@ import android.view.View;
 import android.widget.ArrayAdapter;
 import android.widget.AutoCompleteTextView;
 import android.widget.Button;
+import android.widget.Toast;
 
 import java.util.ArrayList;
 import java.util.HashMap;
@@ -26,10 +32,10 @@ import retrofit2.Retrofit;
 import retrofit2.converter.gson.GsonConverterFactory;
 
 /**
- * Main screen where user enter the breed/sub-breed of a dog they want to see pictures of or of
- * random breeds/sub-breeds. Passes the user selected option(s) to the ImageScreenActivity class
- * through intent. Class makes only one Api call during the app lifecycle to fetch the available
- * breeds and sub-breeds.
+ * Main screen where user enters the breed/sub-breed of a dog they want to see pictures of or of
+ * random dog pictures. Passes the user selected option(s) to the ImageScreenActivity class
+ * through Intent. This class makes only one Api call during the app lifecycle to fetch the
+ * available breeds and sub-breeds from the website.
  */
 public class MainActivity extends AppCompatActivity {
     // Tag used for logging messages to Logcat
@@ -49,6 +55,13 @@ public class MainActivity extends AppCompatActivity {
     private AutoCompleteTextView subACTxtView;
     private Button searchButton;
 
+    // The BroadcastReceiver that tracks network connectivity changes.
+    private NetworkReceiver receiver;
+
+    // Connection flag and no connection message
+    private static boolean isConnected = false;
+    private static String no_internet;
+
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
@@ -58,9 +71,18 @@ public class MainActivity extends AppCompatActivity {
         breedACTxtView = findViewById(R.id.breed_ac);
         searchButton = findViewById(R.id.search);
         subACTxtView = findViewById(R.id.sub_breed_ac);
-        Button randomButton = findViewById(R.id.random_search);
 
+        breedsSubBreedsInfoVM = ViewModelProviders.of(this).get(BreedsSubBreedsInfoVM.class);
+
+        no_internet = getResources().getString(R.string.no_internet);
+
+        // Register BroadcastReceiver to track connection changes.
+        IntentFilter filter = new IntentFilter(ConnectivityManager.CONNECTIVITY_ACTION);
+        receiver = new NetworkReceiver();
+        this.registerReceiver(receiver, filter);
         intent = new Intent(this, ImageScreenActivity.class);
+
+        checkInternetConnection();
 
         // Instantiate a Retrofit object with the base URL and generate an implementation of the
         // ApiCalls interface with it
@@ -70,19 +92,79 @@ public class MainActivity extends AppCompatActivity {
                 .build();
         apiCalls = retrofit.create(ApiCalls.class);
 
-        breedsSubBreedsInfoVM = ViewModelProviders.of(this).get(BreedsSubBreedsInfoVM.class);
+        Button randomButton = findViewById(R.id.random_search);
 
         // Start ImageScreenActivity with random dog pictures
         randomButton.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
-                intent.putExtra("RANDOM", true);
-                startActivity(intent);
+                if (isConnected) {
+                    intent.putExtra("RANDOM", true);
+                    startActivity(intent);
+                } else {
+                    Toast.makeText(getApplicationContext(), no_internet, Toast.LENGTH_LONG).show();
+                }
             }
         });
+    }
 
-        // Get all the available breeds and sub-breeds
-        getJsonBreedInfo();
+    /**
+     * Unregister the receiver when the activity gets destroyed
+     */
+    @Override
+    protected void onDestroy() {
+        super.onDestroy();
+
+        if (receiver != null) {
+            this.unregisterReceiver(receiver);
+        }
+    }
+
+    /**
+     * Checks to see if user is connected to the internet when app first starts up and sets the
+     * connection flag appropriately.
+     */
+    private void checkInternetConnection() {
+        ConnectivityManager cManager =
+                (ConnectivityManager) getSystemService(Context.CONNECTIVITY_SERVICE);
+        NetworkInfo networkInfo = null;
+
+        if (cManager != null) {
+            networkInfo = cManager.getActiveNetworkInfo();
+        }
+
+        isConnected = (networkInfo != null && networkInfo.isConnected());
+    }
+
+    /**
+     * Inner class which extends BroadcastReceiver and intercepts the
+     * android.net.ConnectivityManager.CONNECTIVITY_ACTION, which indicates a connection change.
+     * Sets the global connection flag based on connection status and starts the api call when
+     * internet connection is found.
+     */
+    public class NetworkReceiver extends BroadcastReceiver {
+        @Override
+        public void onReceive(Context context, Intent intent) {
+            ConnectivityManager connMgr =
+                    (ConnectivityManager) context.getSystemService(Context.CONNECTIVITY_SERVICE);
+            NetworkInfo networkInfo = null;
+
+            if (connMgr != null) {
+                networkInfo = connMgr.getActiveNetworkInfo();
+            }
+
+            // Checks to see if the device has an internet connection
+            if (networkInfo != null) {
+                isConnected = true;
+
+                if (breedsSubBreedsInfoVM.getBreedInfoMap() == null) {
+                    getJsonBreedInfo();
+                }
+            } else {
+                isConnected = false;
+                Toast.makeText(context, no_internet, Toast.LENGTH_SHORT).show();
+            }
+        }
     }
 
     /**
@@ -107,7 +189,7 @@ public class MainActivity extends AppCompatActivity {
                                    @NonNull Response<BreedInfo> response) {
                 // Log and exit function if Api call was unsuccessful
                 if (!response.isSuccessful()) {
-                    Log.v(TAG, "getJsonBreedInfo() Response Code: " + response.code());
+                    Log.d(TAG, "getJsonBreedInfo() Response Code: " + response.code());
                     return;
                 }
 
@@ -117,7 +199,7 @@ public class MainActivity extends AppCompatActivity {
                 if (breedInfo != null) {
                     for (String key : (breedInfo.getBreedInfo()).keySet()) {
                         breedInfoMap.put(key, (breedInfo.getBreedInfo()).get(key));
-                        Log.v(TAG, "Key: " + key + "\tValue: " + breedInfoMap.get(key));
+                        Log.d(TAG, "Key: " + key + "\tValue: " + breedInfoMap.get(key));
                     }
 
                     breedsSubBreedsInfoVM.setBreedInfoMap(breedInfoMap);
@@ -128,20 +210,25 @@ public class MainActivity extends AppCompatActivity {
                     searchButton.setOnClickListener(new View.OnClickListener() {
                         @Override
                         public void onClick(View v) {
-                            subACTxtView.setEnabled(false);
-                            userInputSubBreed = subACTxtView.getText().toString().trim();
-                            Log.v(TAG, userInputBreed + "   " + userInputSubBreed);
+                            if (isConnected) {
+                                subACTxtView.setEnabled(false);
+                                userInputSubBreed = subACTxtView.getText().toString().trim();
+                                Log.d(TAG, userInputBreed + "   " + userInputSubBreed);
 
-                            if (breeds.contains(userInputBreed) && (subBreeds.contains(userInputSubBreed) ||
-                                    userInputSubBreed.equals(getResources().getString(R.string.no_sub_breed)))) {
-                                intent.putExtra("RANDOM", false);
-                                intent.putExtra("BREED", userInputBreed);
-                                intent.putExtra("SUB_BREED", userInputSubBreed);
-                                startActivity(intent);
+                                if (breeds.contains(userInputBreed) && (subBreeds.contains(userInputSubBreed) ||
+                                        userInputSubBreed.equals(getResources().getString(R.string.no_sub_breed)))) {
+                                    intent.putExtra("RANDOM", false);
+                                    intent.putExtra("BREED", userInputBreed);
+                                    intent.putExtra("SUB_BREED", userInputSubBreed);
+                                    startActivity(intent);
+                                } else {
+                                    Log.d(TAG, "sub: " + userInputSubBreed);
+                                    subACTxtView.setError(getResources().getString(R.string.error_message));
+                                    subACTxtView.setEnabled(true);
+                                }
                             } else {
-                                Log.v(TAG, "sub: " + userInputSubBreed);
-                                subACTxtView.setError(getResources().getString(R.string.error_message));
-                                subACTxtView.setEnabled(true);
+                                Toast.makeText(getApplicationContext(),
+                                        no_internet, Toast.LENGTH_LONG).show();
                             }
                         }
                     });
@@ -156,7 +243,7 @@ public class MainActivity extends AppCompatActivity {
     }
 
     /**
-     * Populate the AutoCompleteTextView with the available breeds retrieved from the Api call
+     * Populate the Breed AutoCompleteTextView with the available breeds retrieved from the Api call
      * earlier.
      */
     private void getUserBreedInfo() {
@@ -192,8 +279,8 @@ public class MainActivity extends AppCompatActivity {
     }
 
     /**
-     * Populate the AutoCompleteTextView with the list of sub-breeds for the breed user selected
-     * previously, set the sub-breed selection to none if no sub-breeds available.
+     * Populate the Sub-Breed AutoCompleteTextView, if applicable, set the sub-breed selection to
+     * none if no sub-breeds available.
      */
     private void getUserSubBreedInfo() {
         subBreeds = breedsSubBreedsInfoVM.getBreedInfoMap().get(userInputBreed);
@@ -207,6 +294,7 @@ public class MainActivity extends AppCompatActivity {
             }
         });
 
+        // For no available sub-breeds
         if (subBreeds != null && subBreeds.isEmpty()) {
             subACTxtView.setText(none);
             userInputSubBreed = none;
@@ -215,20 +303,21 @@ public class MainActivity extends AppCompatActivity {
             return;
         }
 
-        Log.v(TAG, "Outside Empty");
+        if (subBreeds != null) {
+            // Add the none option to list suggestion list only once
+            if (!subBreeds.contains(none)) {
+                subBreeds.add(none);
+            }
 
-        if (!subBreeds.contains(none)) {
-            subBreeds.add(none);
+            ArrayAdapter<String> adapter = new ArrayAdapter<>(this,
+                    android.R.layout.simple_list_item_1,
+                    subBreeds);
+
+            subACTxtView.setAdapter(adapter);
+            searchButton.setEnabled(true);
+            subACTxtView.showDropDown();
+
+            Log.d(TAG, "Sub: " + subBreeds);
         }
-
-        ArrayAdapter<String> adapter = new ArrayAdapter<>(this,
-                android.R.layout.simple_spinner_item,
-                subBreeds);
-
-        subACTxtView.setAdapter(adapter);
-        searchButton.setEnabled(true);
-        subACTxtView.showDropDown();
-
-        Log.v(TAG, "Sub: " + subBreeds);
     }
 }

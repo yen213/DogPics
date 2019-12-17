@@ -1,49 +1,38 @@
 <resources>
     <!-- Name of the application -->
-    <string name="app_name">Dog Pics</string>
+    <string name="app_name">Pup Spot</string>
 
-    <!-- Description of the content inside the ImageViews in the CardViews -->
-    <string name="card_view_image_view_desc">Users saved favorite pictures go here</string>
-
-    <!-- Place holder text for the title of the image -->
-    <string name="card_view_text_view_title">Title</string>
-
-    <!-- Place holder text for the description of the image -->
-    <string name="card_view_text_view_description">Description</string>
-
-    <!-- Place holder text for the description of the image -->
-    <string name="card_view_text_view_date">Date</string>
-
-    <!-- Background Images for different screens -->
-    <string name="background_image">Background image</string>
-
-    <!-- Sub-Breed spinner identifier -->
+    <!-- Hint for the Sub-Breed AutoComplete TextView-->
     <string name="sub_breed">Sub-Breed</string>
 
-    <!-- Hint for breedsAndSubBreeds Auto Complete Text View -->
+    <!-- Hint for Breed AutoComplete TextView -->
     <string name="breed_hint">Breed</string>
 
-    <!-- Text for random button -->
-    <string name="random">Random Image</string>
+    <!-- Text for the random button -->
+    <string name="random">Random Pup</string>
 
-    <!-- Text for search button -->
+    <!-- Text for the search button -->
     <string name="search">Search</string>
 
-    <!-- Text for breed name warning -->
+    <!-- Error message to the AutoComplete TextViews -->
     <string name="error_message">Check Spelling</string>
 
-    <!-- Text for when there are no sub-breeds -->
+    <!-- String value used in Sub-Breed AutoComplete TextView when no sub-breed option available -->
     <string name="no_sub_breed">none</string>
 
-    <!-- Header for searching by breed -->
-    <string name="search_for_pet">Search for Specific Breed or Random Image</string>
+    <!-- Description for the title of the App -->
+    <string name="app_title_image">Picture of the app</string>
 
-    <!-- Text for when there are no sub-breeds -->
-    <string name="app_image">Picture of the app</string>
+    <!-- Dialog message to show when image_screen activity starts. -->
+    <string name="dialog_message_image_screen">
+        Swipe left and right to switch between pictures</string>
 
-    <!-- Dialog message for image screen -->
-    <string name="dialog_message">Swipe left and right to switch between pictures</string>
-
-    <!-- Dialog positive button -->
+    <!-- Dialog box positive button-->
     <string name="ok_dialog">OK</string>
+
+    <!-- Description for the ImageView where dog pictures are placed in -->
+    <string name="dog_image">Pictures of dogs placed here</string>
+
+    <!-- Toast message to show user when no internet connection is detected. -->
+    <string name="no_internet">No internet connection detected</string>
 </resources>
