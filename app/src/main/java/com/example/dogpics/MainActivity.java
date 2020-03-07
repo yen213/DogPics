@@ -1,9 +1,5 @@
 package com.example.dogpics;
 
-import androidx.annotation.NonNull;
-import androidx.appcompat.app.AppCompatActivity;
-import androidx.lifecycle.ViewModelProviders;
-
 import android.content.BroadcastReceiver;
 import android.content.Context;
 import android.content.Intent;
@@ -11,14 +7,16 @@ import android.content.IntentFilter;
 import android.net.ConnectivityManager;
 import android.net.NetworkInfo;
 import android.os.Bundle;
-
 import android.util.Log;
-
 import android.view.View;
 import android.widget.ArrayAdapter;
 import android.widget.AutoCompleteTextView;
 import android.widget.Button;
 import android.widget.Toast;
+
+import androidx.annotation.NonNull;
+import androidx.appcompat.app.AppCompatActivity;
+import androidx.lifecycle.ViewModelProvider;
 
 import java.util.ArrayList;
 import java.util.HashMap;
@@ -72,7 +70,7 @@ public class MainActivity extends AppCompatActivity {
         searchButton = findViewById(R.id.search);
         subACTxtView = findViewById(R.id.sub_breed_ac);
 
-        breedsSubBreedsInfoVM = ViewModelProviders.of(this).get(BreedsSubBreedsInfoVM.class);
+        breedsSubBreedsInfoVM = new ViewModelProvider(this).get(BreedsSubBreedsInfoVM.class);
 
         no_internet = getResources().getString(R.string.no_internet);
 
